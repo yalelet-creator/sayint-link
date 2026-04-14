@@ -3,38 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ሳይንት ሊንክ ፕሮ | Sayint Link Absolute Edition</title>
+    <title>ሳይንት ሊንክ ፕሮ | Sayint Link Official</title>
     
-    <!-- PWA & Libraries -->
+    <!-- PWA & Icon Resources -->
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#075e54">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Jitsi Video Call API -->
     <script src='https://meet.jit.si/external_api.js'></script>
 
     <style>
-        :root { --primary: #075e54; --accent: #25d366; --bg: #efe7dd; --white: #ffffff; --text: #2c3e50; --gray: #777; --danger: #e74c3c; }
+        :root { --primary: #075e54; --accent: #25d366; --bg: #efe7dd; --white: #ffffff; --gray: #777; --danger: #e74c3c; }
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; flex-direction: column; transition: 0.3s; }
-        .dark-mode { --bg: #121212; --white: #1e1e1e; --text: #ecf0f1; --primary: #1f2c33; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; flex-direction: column; transition: 0.3s; }
+        
+        /* Theme Toggle */
+        .dark-mode { --bg: #121212; --white: #1e1e1e; --gray: #bdc3c7; --primary: #1f2c33; }
 
-        /* Login Screen */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 5000; }
+        /* Login */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 5000; transition: 0.5s; }
         .login-card { background: white; padding: 40px 30px; border-radius: 30px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
         input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 15px; outline: none; font-size: 16px; box-sizing: border-box; }
 
         /* Header */
         header { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; height: 65px; box-sizing: border-box; z-index: 1000; }
-        .btn-live { background: var(--danger); color: white; border: none; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-live { background: var(--danger); color: white; border: none; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
 
-        /* Live Video Area */
+        /* Video Area */
         #videoContainer { display: none; position: fixed; top: 65px; left: 0; width: 100%; height: calc(100% - 135px); background: black; z-index: 2000; }
 
         /* Chat Area */
         #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); padding-bottom: 40px; }
-        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; }
+        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .sent { align-self: flex-end; align-items: flex-end; }
         .received { align-self: flex-start; align-items: flex-start; }
         .bubble { padding: 10px 14px; border-radius: 15px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
@@ -56,7 +59,7 @@
 </head>
 <body id="body">
 
-<!-- Login -->
+<!-- Login Screen -->
 <div id="loginScreen">
     <div class="login-card">
         <h1 style="color:var(--primary); margin:0;">ሳይንት ሊንክ</h1>
@@ -71,7 +74,7 @@
 <header>
     <div>
         <h3 id="myTitle" style="margin:0; font-size:17px;">Sayint Link</h3>
-        <small>ግንኙነት ተፈጥሯል ✅</small>
+        <small id="statusDisp">ግንኙነት ተፈጥሯል ✅</small>
     </div>
     <div style="display: flex; align-items: center;">
         <button class="theme-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
@@ -128,7 +131,7 @@
         }
     });
 
-    // --- Live Video (Jitsi Meet Multi-User) ---
+    // --- Live Video Call (Jitsi Meet Fixed) ---
     function toggleLive() {
         const container = document.getElementById('videoContainer');
         const btn = document.getElementById('liveToggleBtn');
@@ -136,10 +139,9 @@
             container.style.display = "block";
             btn.innerHTML = '<i class="fas fa-times"></i> ዝጋ';
             btn.style.background = "#555";
-            
             const domain = "meet.jit.si";
             const options = {
-                roomName: "Sayint_Link_Grand_Meeting_Room_Yalelet", // ይህ ስም ለሁሉም ተጠቃሚ አንድ አይነት መሆን አለበት!
+                roomName: "Sayint_Link_Grand_Meeting_Room_Yalelet",
                 width: "100%", height: "100%", parentNode: container,
                 configOverwrite: { disableDeepLinking: true },
                 interfaceConfigOverwrite: { MOBILE_APP_PROMO: false },
@@ -154,14 +156,17 @@
         }
     }
 
-    // --- Messaging ---
+    // --- Text Messaging ---
     function sendText() {
         const txt = document.getElementById('msgInput').value.trim();
         if(!txt) return;
-        db.ref('messages').push({ sender: myPhone, type: 'text', content: txt, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
+        db.ref('messages').push({ sender: myPhone, type: 'text', content: txt, time: getTime() });
         document.getElementById('msgInput').value = "";
     }
 
+    function getTime() { return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+
+    // --- Voice Messages Fixed ---
     async function startVoice() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -173,7 +178,7 @@
                 const reader = new FileReader();
                 reader.readAsDataURL(blob);
                 reader.onloadend = () => {
-                    db.ref('messages').push({ sender: myPhone, type: 'voice', content: reader.result, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
+                    db.ref('messages').push({ sender: myPhone, type: 'voice', content: reader.result, time: getTime() });
                 };
             };
             mediaRecorder.start();
@@ -190,7 +195,8 @@
         document.getElementById('micBtn').onclick = startVoice;
     }
 
-    db.ref('messages').limitToLast(30).on('child_added', snap => {
+    // --- Real-time Sync ---
+    db.ref('messages').limitToLast(40).on('child_added', snap => {
         const m = snap.val(), isMe = m.sender === myPhone, chatBox = document.getElementById('chatBox');
         let content = m.type === 'text' ? m.content : `<audio controls src="${m.content}"></audio>`;
         const html = `<div class="msg-wrap ${isMe?'sent':'received'}"><span class="sender-tag">${isMe?'እኔ':m.sender}</span><div class="bubble">${content}</div><span style="font-size:9px; color:gray; margin-top:3px;">${m.time}</span></div>`;
@@ -200,5 +206,9 @@
 
     function toggleTheme() { document.getElementById('body').classList.toggle('dark-mode'); }
 </script>
+
+<!-- Service Worker Registration -->
+<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }</script>
+
 </body>
 </html>
