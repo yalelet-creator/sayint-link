@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ሳይንት ሊንክ ፕሮ | Group & Private Chat</title>
+    <title>ሳይንት ሊንክ | Sayint Link IMO</title>
     
     <link rel="manifest" href="manifest.json">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -13,126 +13,128 @@
     <script src='https://meet.jit.si/external_api.js'></script>
 
     <style>
-        :root { --primary: #075e54; --accent: #25d366; --bg: #f0f2f5; --white: #ffffff; --text: #2c3e50; --danger: #e74c3c; --blue: #3498db; }
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        :root { --imo-blue: #0088cc; --imo-bg: #f0f2f5; --white: #ffffff; --sent-msg: #e1f5fe; --received-msg: #ffffff; }
+        
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--imo-bg); font-family: 'Segoe UI', Arial, sans-serif; }
 
-        /* Navigation Layout */
-        #mainContainer { display: flex; flex-direction: column; height: 100%; transition: 0.3s; }
-        header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .content-area { flex: 1; overflow-y: auto; display: none; background: #e5ddd5; }
-        .active-area { display: block; }
+        /* Login Page */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--imo-blue); display: flex; align-items: center; justify-content: center; z-index: 5000; }
+        .login-card { background: white; padding: 35px; border-radius: 25px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        input { width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; font-size: 16px; box-sizing: border-box; }
 
-        /* Login Screen */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 5000; }
-        .login-card { background: white; padding: 40px 30px; border-radius: 30px; width: 85%; max-width: 360px; text-align: center; }
-        input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #eee; border-radius: 15px; outline: none; box-sizing: border-box; }
+        /* Header */
+        header { background: var(--imo-blue); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box; }
+        
+        /* Main View */
+        #mainView { display: flex; flex-direction: column; height: 100%; }
+        .tab-content { flex: 1; overflow-y: auto; display: none; }
+        .active-tab { display: block; }
+
+        /* Chat List Item (IMO Style) */
+        .chat-item { background: white; padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: #ccc; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .chat-info { flex: 1; }
+        .chat-info b { font-size: 16px; color: #333; }
+        .chat-info p { margin: 0; font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Individual Chat Room */
+        #chatRoom { position: fixed; top: 0; left: 100%; width: 100%; height: 100%; background: #e5ddd5; z-index: 2000; display: flex; flex-direction: column; transition: 0.3s; }
+        .room-header { background: var(--imo-blue); color: white; padding: 12px 15px; display: flex; align-items: center; gap: 15px; }
+        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        
+        .bubble { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 15px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
+        .sent { align-self: flex-end; background: var(--sent-msg); border-top-right-radius: 2px; }
+        .received { align-self: flex-start; background: var(--received-msg); border-top-left-radius: 2px; }
+
+        /* Chat Input Bar */
+        .input-bar { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
+        .msg-in { flex: 1; background: white; padding: 10px 15px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        .icon-btn { color: var(--imo-blue); font-size: 22px; cursor: pointer; }
 
         /* Bottom Nav */
-        .bottom-nav { background: white; height: 70px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 1000; }
-        .nav-item { color: #888; text-align: center; cursor: pointer; font-size: 11px; }
-        .nav-item i { font-size: 24px; display: block; margin-bottom: 2px; }
-        .nav-item.active { color: var(--primary); font-weight: bold; }
+        .bottom-nav { background: white; height: 60px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; }
+        .nav-item { color: #888; text-align: center; font-size: 11px; cursor: pointer; }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 2px; }
+        .nav-item.active { color: var(--imo-blue); }
 
-        /* Chat Bubbles */
-        #chatBox { padding: 15px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 100px; }
-        .bubble { padding: 10px 14px; border-radius: 15px; max-width: 85%; position: relative; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
-        .sent { align-self: flex-end; background: #dcf8c6; border-top-right-radius: 0; }
-        .received { align-self: flex-start; background: white; border-top-left-radius: 0; }
-        .sender-name { font-size: 10px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 2px; }
-
-        /* Footer Input */
-        .chat-input-bar { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ddd; }
-        .msg-input { flex: 1; background: white; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
-
-        /* Contacts & Groups */
-        .list-item { background: white; padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        .list-item:active { background: #f0f0f0; }
-        .avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
-
-        /* Story Grid */
-        .story-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
-        .story-card { height: 220px; border-radius: 15px; overflow: hidden; position: relative; background: #000; }
-        .story-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-
-        /* Video Call */
-        #videoContainer { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 4000; }
-        .close-call { position: absolute; top: 30px; right: 20px; z-index: 4001; background: var(--danger); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; }
+        /* Video Overlay */
+        #videoBox { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 4000; }
     </style>
 </head>
 <body>
 
-<!-- Login View -->
+<!-- Login -->
 <div id="loginScreen">
     <div class="login-card">
-        <h1 style="color:var(--primary)">ሳይንት ሊንክ</h1>
-        <p>በስልክ ቁጥርዎ ይግቡ</p>
+        <h2 style="color:var(--imo-blue)">ሳይንት ሊንክ</h2>
         <input type="text" id="phoneInput" placeholder="ስልክ ቁጥር (09...)">
         <input type="text" id="nameInput" placeholder="ሙሉ ስምዎ">
         <input type="password" id="passInput" placeholder="ፓስወርድ">
-        <button class="btn" style="background:var(--accent); color:white; border:none; padding:15px; border-radius:15px; width:100%; font-weight:bold;" onclick="handleLogin()">መተግበሪያውን ክፈት</button>
+        <button class="btn" style="background:var(--imo-blue); color:white; border:none; padding:15px; border-radius:10px; width:100%; font-weight:bold;" onclick="handleLogin()">ግባ</button>
     </div>
 </div>
 
-<div id="videoContainer">
-    <button class="close-call" onclick="stopLive()"><i class="fas fa-times"></i></button>
+<!-- Video Call View -->
+<div id="videoBox">
+    <button style="position:absolute; top:30px; right:20px; z-index:4001; background:red; color:white; border:none; padding:10px; border-radius:50%;" onclick="stopCall()"><i class="fas fa-times"></i></button>
 </div>
 
-<div id="mainContainer">
+<!-- Chat Room View (Individual) -->
+<div id="chatRoom">
+    <div class="room-header">
+        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
+        <div class="avatar" id="roomAvatar" style="width:35px; height:35px; font-size:14px;"></div>
+        <b id="roomTitle">ስማቸው</b>
+        <i class="fas fa-video" style="margin-left:auto;" onclick="startCall()"></i>
+    </div>
+    <div id="messages"></div>
+    <div class="input-bar">
+        <i class="fas fa-camera icon-btn" onclick="document.getElementById('fileIn').click()"></i>
+        <input type="file" id="fileIn" hidden onchange="sendImg(this)">
+        <input type="text" id="msgInput" class="msg-in" placeholder="መልዕክት..." onkeypress="if(event.key==='Enter') sendTxt()">
+        <i class="fas fa-paper-plane icon-btn" onclick="sendTxt()"></i>
+    </div>
+</div>
+
+<div id="mainView">
     <header>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <i id="backBtn" class="fas fa-arrow-left" style="display:none; cursor:pointer;" onclick="goBackToGroups()"></i>
-            <h3 id="headerTitle" style="margin:0;">ሳይንት ሊንክ</h3>
-        </div>
-        <div style="display:flex; gap:18px; align-items:center;">
-            <i class="fas fa-video" onclick="startLive()" style="cursor:pointer;"></i>
-            <i class="fas fa-moon" onclick="toggleTheme()"></i>
+        <h3>Sayint Link</h3>
+        <div style="display:flex; gap:15px;">
+            <i class="fas fa-search"></i>
+            <i class="fas fa-user-plus" onclick="switchTab('contacts', document.getElementById('contactTab'))"></i>
         </div>
     </header>
 
-    <!-- 1. CHATS/GROUPS VIEW -->
-    <div id="chatsView" class="content-area active-area">
-        <div id="groupList">
-            <div class="list-item" onclick="openChat('global', 'የሳይንት ጋራ ቡድን')">
-                <div class="avatar"><i class="fas fa-users"></i></div>
-                <div><b>የሳይንት ጋራ ቡድን (Global)</b><br><small>ለሁሉም የሳይንት ልጆች</small></div>
-            </div>
-            <div style="padding:15px; color:#777; font-size:12px;">የግል መልዕክቶች (Private)</div>
-            <div id="privateChatList"></div>
+    <!-- 1. Chats List -->
+    <div id="chatsView" class="tab-content active-tab">
+        <div class="chat-item" onclick="openChat('global', 'የሳይንት ጋራ ግሩፕ')">
+            <div class="avatar" style="background:var(--imo-blue)"><i class="fas fa-users"></i></div>
+            <div class="chat-info"><b>የሳይንት ጋራ ግሩፕ</b><p>ለሁሉም የሳይንት ልጆች ክፍት የሆነ ግሩፕ</p></div>
         </div>
-        
-        <!-- Active Chat Room (Hidden by default) -->
-        <div id="chatRoom" style="display:none; height:100%; flex-direction:column;">
-            <div id="chatBox"></div>
-            <div class="chat-input-bar">
-                <i class="fas fa-plus-circle" style="color:var(--primary); font-size:24px;" onclick="document.getElementById('fileIn').click()"></i>
-                <input type="file" id="fileIn" hidden onchange="sendFile(this)">
-                <input type="text" id="msgInput" class="msg-input" placeholder="መልዕክት..." onkeypress="if(event.key==='Enter') sendText()">
-                <i class="fas fa-paper-plane" style="color:var(--primary); font-size:24px;" onclick="sendText()"></i>
-            </div>
-        </div>
+        <div id="recentChats"></div>
     </div>
 
-    <!-- 2. STORIES VIEW -->
-    <div id="storiesView" class="content-area" style="background:var(--bg);">
-        <div style="padding:15px;"><button style="background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; width:100%;" onclick="document.getElementById('storyIn').click()">+ ታሪክ (Story) ልጠፍ</button></div>
+    <!-- 2. Explore/Stories -->
+    <div id="exploreView" class="tab-content">
+        <div style="padding:15px;"><button style="background:var(--imo-blue); color:white; border:none; padding:12px; border-radius:10px; width:100%;" onclick="document.getElementById('storyIn').click()">+ አዲስ ታሪክ (Story) ልጠፍ</button></div>
         <input type="file" id="storyIn" hidden accept="image/*" onchange="postStory(this)">
-        <div id="storyGrid" class="story-grid"></div>
+        <div id="storyList" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:15px;"></div>
     </div>
 
-    <!-- 3. CONTACTS VIEW -->
-    <div id="contactsView" class="content-area" style="background:var(--bg);">
+    <!-- 3. Contacts List -->
+    <div id="contactsView" class="tab-content">
         <div id="contactList"></div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('chats', this)"><i class="fas fa-comment"></i>Chats</div>
-        <div class="nav-item" onclick="switchTab('stories', this)"><i class="fas fa-circle-notch"></i>Stories</div>
-        <div class="nav-item" onclick="switchTab('contacts', this)"><i class="fas fa-users"></i>Contacts</div>
+        <div class="nav-item active" id="chatTab" onclick="switchTab('chats', this)"><i class="fas fa-comment"></i>CHATS</div>
+        <div class="nav-item" onclick="switchTab('explore', this)"><i class="fas fa-compass"></i>EXPLORE</div>
+        <div class="nav-item" id="contactTab" onclick="switchTab('contacts', this)"><i class="fas fa-address-book"></i>CONTACTS</div>
     </div>
 </div>
 
 <script>
-    // 1. Config
     const firebaseConfig = {
         apiKey: "AIzaSyAVn2jp_TR6Wjq1i_i5Xmk1Q6ea96KHMIQ",
         authDomain: "sayint-gebaye.firebaseapp.com",
@@ -144,28 +146,23 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(), auth = firebase.auth();
-    let myPhone = "", myName = "", currentChatId = "", chatListener = null;
+    let myPhone = "", myName = "", currentChatId = "", chatRef = null, jitsiApi = null;
 
-    // --- Tab Management ---
+    // --- Tab Switcher ---
     function switchTab(tab, el) {
-        if(currentChatId) goBackToGroups();
-        document.querySelectorAll('.content-area').forEach(a => a.classList.remove('active-area'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(tab + 'View').classList.add('active-area');
+        document.getElementById(tab + 'View').classList.add('active-tab');
         el.classList.add('active');
-        document.getElementById('headerTitle').innerText = tab.charAt(0).toUpperCase() + tab.slice(1);
     }
 
     // --- Authentication ---
     async function handleLogin() {
-        const phone = document.getElementById('phoneInput').value, 
-              name = document.getElementById('nameInput').value,
-              pass = document.getElementById('passInput').value;
-        if(phone.length < 10 || !name) return alert("መረጃ ያሟሉ!");
-        const email = phone + "@sayint.com";
-        try { await auth.signInWithEmailAndPassword(email, pass); } 
-        catch(e) { await auth.createUserWithEmailAndPassword(email, pass); }
-        db.ref('users/' + phone).set({ phone, name, lastSeen: Date.now() });
+        const p = document.getElementById('phoneInput').value, n = document.getElementById('nameInput').value, pw = document.getElementById('passInput').value;
+        if(p.length < 10 || !n) return alert("መረጃ ያሟሉ!");
+        const email = p + "@sayint.com";
+        try { await auth.signInWithEmailAndPassword(email, pw); } catch(e) { await auth.createUserWithEmailAndPassword(email, pw); }
+        db.ref('users/' + p).set({ phone: p, name: n, lastSeen: Date.now() });
     }
 
     auth.onAuthStateChanged(user => {
@@ -173,85 +170,79 @@
             myPhone = user.email.split('@')[0];
             document.getElementById('loginScreen').style.display = "none";
             db.ref('users/' + myPhone).once('value', s => { if(s.exists()) myName = s.val().name; });
-            loadContacts();
+            loadData();
         }
     });
 
     // --- Chat Logic ---
     function openChat(id, title) {
         currentChatId = id;
-        document.getElementById('groupList').style.display = "none";
-        document.getElementById('chatRoom').style.display = "flex";
-        document.getElementById('backBtn').style.display = "block";
-        document.getElementById('headerTitle').innerText = title;
-        loadMessages(id);
-    }
-
-    function goBackToGroups() {
-        currentChatId = "";
-        document.getElementById('groupList').style.display = "block";
-        document.getElementById('chatRoom').style.display = "none";
-        document.getElementById('backBtn').style.display = "none";
-        document.getElementById('headerTitle').innerText = "Chats";
-        if(chatListener) db.ref('messages/' + currentChatId).off();
-    }
-
-    function sendText() {
-        const txt = document.getElementById('msgInput').value.trim();
-        if(!txt || !currentChatId) return;
-        db.ref('messages/' + currentChatId).push({ sender: myName || myPhone, type: 'text', content: txt, time: getTime() });
-        document.getElementById('msgInput').value = "";
-    }
-
-    async function sendFile(input) {
-        const file = input.files[0]; if(!file) return;
-        const reader = new FileReader(); reader.readAsDataURL(file);
-        reader.onload = (e) => {
-            const type = file.type.includes('image') ? 'image' : 'file';
-            db.ref('messages/' + currentChatId).push({ sender: myName || myPhone, type, content: e.target.result, fileName: file.name, time: getTime() });
-        };
-    }
-
-    function loadMessages(chatId) {
-        const chatBox = document.getElementById('chatBox');
-        chatBox.innerHTML = "";
-        if(chatListener) db.ref('messages/' + chatId).off();
-        chatListener = db.ref('messages/' + chatId).limitToLast(30).on('child_added', snap => {
-            const m = snap.val(), isMe = (m.sender === myName || m.sender === myPhone);
-            let content = m.type === 'text' ? m.content : (m.type === 'image' ? `<img src="${m.content}" style="width:100%; border-radius:10px;">` : `<a href="${m.content}" download>${m.fileName}</a>`);
-            chatBox.innerHTML += `<div class="bubble ${isMe?'sent':'received'}"><span class="sender-name">${isMe?'እኔ':m.sender}</span>${content}</div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById('chatRoom').style.left = "0";
+        document.getElementById('roomTitle').innerText = title;
+        document.getElementById('roomAvatar').innerText = title.charAt(0);
+        
+        const box = document.getElementById('messages'); box.innerHTML = "";
+        if(chatRef) chatRef.off();
+        chatRef = db.ref('messages/' + id);
+        chatRef.limitToLast(40).on('child_added', snap => {
+            const m = snap.val(), isMe = m.senderPhone === myPhone;
+            let content = m.type === 'text' ? m.content : `<img src="${m.content}" class="msg-img" onclick="window.open(this.src)">`;
+            box.innerHTML += `<div class="msg-wrap ${isMe?'sent':'received'}"><div class="bubble">${content}</div></div>`;
+            box.scrollTop = box.scrollHeight;
         });
     }
 
-    function loadContacts() {
+    function closeChat() { document.getElementById('chatRoom').style.left = "100%"; if(chatRef) chatRef.off(); }
+
+    function sendTxt() {
+        const val = document.getElementById('msgInput').value;
+        if(!val) return;
+        db.ref('messages/' + currentChatId).push({ senderName: myName, senderPhone: myPhone, type: 'text', content: val, time: Date.now() });
+        document.getElementById('msgInput').value = "";
+    }
+
+    async function sendImg(input) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader(); reader.readAsDataURL(file);
+        reader.onload = (e) => db.ref('messages/' + currentChatId).push({ senderPhone: myPhone, type: 'image', content: e.target.result });
+    }
+
+    // --- Load Users & Stories ---
+    function loadData() {
+        // Contacts
         db.ref('users').on('value', s => {
             const list = document.getElementById('contactList'); list.innerHTML = "";
             s.forEach(c => {
                 const u = c.val();
                 if(u.phone !== myPhone) {
                     const chatId = [myPhone, u.phone].sort().join('_');
-                    list.innerHTML += `<div class="list-item" onclick="openChat('${chatId}', '${u.name}')"><div class="avatar">${u.name.charAt(0)}</div><div><b>${u.name}</b><br><small>${u.phone}</small></div></div>`;
+                    list.innerHTML += `<div class="chat-item" onclick="openChat('${chatId}', '${u.name}')"><div class="avatar">${u.name.charAt(0)}</div><div class="chat-info"><b>${u.name}</b><p>${u.phone}</p></div></div>`;
                 }
+            });
+        });
+        // Explore/Stories
+        db.ref('stories').on('value', s => {
+            const grid = document.getElementById('storyList'); grid.innerHTML = "";
+            s.forEach(c => {
+                const st = c.val();
+                grid.innerHTML += `<div class="story-card"><img src="${st.img}"><div class="story-name">${st.sender}</div></div>`;
             });
         });
     }
 
-    // --- Story & Video ---
     async function postStory(input) {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader(); reader.readAsDataURL(file);
-        reader.onload = (e) => db.ref('stories').push({ sender: myName || myPhone, img: e.target.result });
+        reader.onload = (e) => db.ref('stories').push({ sender: myName, img: e.target.result });
     }
-    db.ref('stories').on('value', s => {
-        const grid = document.getElementById('storyGrid'); grid.innerHTML = "";
-        s.forEach(c => { const st = c.val(); grid.innerHTML += `<div class="story-card"><img src="${st.img}"><div style="position:absolute; bottom:10px; left:10px; color:white; font-size:12px;">${st.sender}</div></div>`; });
-    });
 
-    function startLive() { document.getElementById('videoContainer').style.display = "block"; jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", { roomName: "Sayint_Link_Grand_Meeting", width: "100%", height: "100%", parentNode: document.getElementById('videoContainer'), configOverwrite: { disableDeepLinking: true } }); }
-    function stopLive() { document.getElementById('videoContainer').style.display = "none"; if(jitsiApi) jitsiApi.dispose(); }
-    function getTime() { return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
-    function toggleTheme() { document.body.style.filter = document.body.style.filter === 'invert(1)' ? 'invert(0)' : 'invert(1)'; }
+    // --- Video Call ---
+    function startCall() {
+        document.getElementById('videoBox').style.display = "block";
+        jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", { roomName: "Sayint_Link_Call_" + currentChatId, width: "100%", height: "100%", parentNode: document.getElementById('videoBox'), configOverwrite: { disableDeepLinking: true } });
+    }
+    function stopCall() { document.getElementById('videoBox').style.display = "none"; if(jitsiApi) jitsiApi.dispose(); }
+
 </script>
 </body>
 </html>
