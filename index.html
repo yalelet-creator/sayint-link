@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ሳይንት ሊንክ ፕሮ | Sayint Link Absolute</title>
+    <title>ሳይንት ሊንክ ፕሮ | Group & Private Chat</title>
     
     <link rel="manifest" href="manifest.json">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -13,16 +13,16 @@
     <script src='https://meet.jit.si/external_api.js'></script>
 
     <style>
-        :root { --primary: #075e54; --accent: #25d366; --bg: #f0f2f5; --white: #ffffff; --gray: #777; --danger: #e74c3c; --blue: #3498db; }
+        :root { --primary: #075e54; --accent: #25d366; --bg: #f0f2f5; --white: #ffffff; --text: #2c3e50; --danger: #e74c3c; --blue: #3498db; }
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); font-family: 'Segoe UI', sans-serif; }
 
-        /* Layout */
-        #mainContainer { display: flex; flex-direction: column; height: 100%; }
-        header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
-        .content-area { flex: 1; overflow-y: auto; display: none; }
+        /* Navigation Layout */
+        #mainContainer { display: flex; flex-direction: column; height: 100%; transition: 0.3s; }
+        header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .content-area { flex: 1; overflow-y: auto; display: none; background: #e5ddd5; }
         .active-area { display: block; }
 
-        /* Login & Profile Setup */
+        /* Login Screen */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 5000; }
         .login-card { background: white; padding: 40px 30px; border-radius: 30px; width: 85%; max-width: 360px; text-align: center; }
         input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #eee; border-radius: 15px; outline: none; box-sizing: border-box; }
@@ -34,38 +34,42 @@
         .nav-item.active { color: var(--primary); font-weight: bold; }
 
         /* Chat Bubbles */
-        #chatBox { padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #e5ddd5; min-height: 100%; padding-bottom: 80px; }
+        #chatBox { padding: 15px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 100px; }
         .bubble { padding: 10px 14px; border-radius: 15px; max-width: 85%; position: relative; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
         .sent { align-self: flex-end; background: #dcf8c6; border-top-right-radius: 0; }
         .received { align-self: flex-start; background: white; border-top-left-radius: 0; }
         .sender-name { font-size: 10px; font-weight: bold; color: var(--primary); display: block; margin-bottom: 2px; }
 
         /* Footer Input */
-        .chat-input-bar { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 8px; position: absolute; bottom: 70px; width: 100%; box-sizing: border-box; }
+        .chat-input-bar { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #ddd; }
         .msg-input { flex: 1; background: white; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
 
-        /* Story & Contact Styles */
+        /* Contacts & Groups */
+        .list-item { background: white; padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .list-item:active { background: #f0f0f0; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+
+        /* Story Grid */
         .story-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
         .story-card { height: 220px; border-radius: 15px; overflow: hidden; position: relative; background: #000; }
         .story-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-        .contact-item { background: white; padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
-        .user-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: var(--primary); }
 
-        /* Call Overlay */
+        /* Video Call */
         #videoContainer { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 4000; }
         .close-call { position: absolute; top: 30px; right: 20px; z-index: 4001; background: var(--danger); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; }
     </style>
 </head>
 <body>
 
+<!-- Login View -->
 <div id="loginScreen">
     <div class="login-card">
-        <h1 style="color:var(--primary); margin:0;">ሳይንት ሊንክ</h1>
-        <p style="color:var(--gray); margin-bottom: 20px;">በስልክ ቁጥርዎ ይግቡ</p>
+        <h1 style="color:var(--primary)">ሳይንት ሊንክ</h1>
+        <p>በስልክ ቁጥርዎ ይግቡ</p>
         <input type="text" id="phoneInput" placeholder="ስልክ ቁጥር (09...)">
         <input type="text" id="nameInput" placeholder="ሙሉ ስምዎ">
         <input type="password" id="passInput" placeholder="ፓስወርድ">
-        <button class="btn" style="background:var(--accent);" onclick="handleLogin()">መተግበሪያውን ክፈት</button>
+        <button class="btn" style="background:var(--accent); color:white; border:none; padding:15px; border-radius:15px; width:100%; font-weight:bold;" onclick="handleLogin()">መተግበሪያውን ክፈት</button>
     </div>
 </div>
 
@@ -75,34 +79,48 @@
 
 <div id="mainContainer">
     <header>
-        <h3 id="headerTitle">ሳይንት ሊንክ</h3>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i id="backBtn" class="fas fa-arrow-left" style="display:none; cursor:pointer;" onclick="goBackToGroups()"></i>
+            <h3 id="headerTitle" style="margin:0;">ሳይንት ሊንክ</h3>
+        </div>
         <div style="display:flex; gap:18px; align-items:center;">
-            <i class="fas fa-search"></i>
             <i class="fas fa-video" onclick="startLive()" style="cursor:pointer;"></i>
-            <i id="themeBtn" class="fas fa-moon" onclick="toggleTheme()"></i>
+            <i class="fas fa-moon" onclick="toggleTheme()"></i>
         </div>
     </header>
 
-    <!-- 1. CHATS VIEW -->
+    <!-- 1. CHATS/GROUPS VIEW -->
     <div id="chatsView" class="content-area active-area">
-        <div id="chatBox"></div>
-        <div class="chat-input-bar">
-            <i class="fas fa-plus-circle" style="color:var(--primary); font-size:22px;" onclick="document.getElementById('fileIn').click()"></i>
-            <input type="file" id="fileIn" hidden onchange="sendFile(this)">
-            <input type="text" id="msgInput" class="msg-input" placeholder="መልዕክት..." onkeypress="if(event.key==='Enter') sendText()">
-            <i class="fas fa-paper-plane" style="color:var(--primary); font-size:22px;" onclick="sendText()"></i>
+        <div id="groupList">
+            <div class="list-item" onclick="openChat('global', 'የሳይንት ጋራ ቡድን')">
+                <div class="avatar"><i class="fas fa-users"></i></div>
+                <div><b>የሳይንት ጋራ ቡድን (Global)</b><br><small>ለሁሉም የሳይንት ልጆች</small></div>
+            </div>
+            <div style="padding:15px; color:#777; font-size:12px;">የግል መልዕክቶች (Private)</div>
+            <div id="privateChatList"></div>
+        </div>
+        
+        <!-- Active Chat Room (Hidden by default) -->
+        <div id="chatRoom" style="display:none; height:100%; flex-direction:column;">
+            <div id="chatBox"></div>
+            <div class="chat-input-bar">
+                <i class="fas fa-plus-circle" style="color:var(--primary); font-size:24px;" onclick="document.getElementById('fileIn').click()"></i>
+                <input type="file" id="fileIn" hidden onchange="sendFile(this)">
+                <input type="text" id="msgInput" class="msg-input" placeholder="መልዕክት..." onkeypress="if(event.key==='Enter') sendText()">
+                <i class="fas fa-paper-plane" style="color:var(--primary); font-size:24px;" onclick="sendText()"></i>
+            </div>
         </div>
     </div>
 
     <!-- 2. STORIES VIEW -->
-    <div id="storiesView" class="content-area">
-        <div style="padding:15px;"><button class="btn" onclick="document.getElementById('storyIn').click()">+ የኔን ታሪክ (Story) ልጠፍ</button></div>
+    <div id="storiesView" class="content-area" style="background:var(--bg);">
+        <div style="padding:15px;"><button style="background:var(--primary); color:white; border:none; padding:12px; border-radius:10px; width:100%;" onclick="document.getElementById('storyIn').click()">+ ታሪክ (Story) ልጠፍ</button></div>
         <input type="file" id="storyIn" hidden accept="image/*" onchange="postStory(this)">
         <div id="storyGrid" class="story-grid"></div>
     </div>
 
     <!-- 3. CONTACTS VIEW -->
-    <div id="contactsView" class="content-area">
+    <div id="contactsView" class="content-area" style="background:var(--bg);">
         <div id="contactList"></div>
     </div>
 
@@ -114,7 +132,7 @@
 </div>
 
 <script>
-    // 1. Firebase Config
+    // 1. Config
     const firebaseConfig = {
         apiKey: "AIzaSyAVn2jp_TR6Wjq1i_i5Xmk1Q6ea96KHMIQ",
         authDomain: "sayint-gebaye.firebaseapp.com",
@@ -126,27 +144,27 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database(), auth = firebase.auth();
-    let myPhone = "", myName = "", jitsiApi = null;
+    let myPhone = "", myName = "", currentChatId = "", chatListener = null;
 
-    // --- Tab Switcher ---
+    // --- Tab Management ---
     function switchTab(tab, el) {
+        if(currentChatId) goBackToGroups();
         document.querySelectorAll('.content-area').forEach(a => a.classList.remove('active-area'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(tab + 'View').classList.add('active-area');
         el.classList.add('active');
+        document.getElementById('headerTitle').innerText = tab.charAt(0).toUpperCase() + tab.slice(1);
     }
 
-    // --- Login & User Management ---
+    // --- Authentication ---
     async function handleLogin() {
         const phone = document.getElementById('phoneInput').value, 
               name = document.getElementById('nameInput').value,
               pass = document.getElementById('passInput').value;
         if(phone.length < 10 || !name) return alert("መረጃ ያሟሉ!");
-        
         const email = phone + "@sayint.com";
         try { await auth.signInWithEmailAndPassword(email, pass); } 
         catch(e) { await auth.createUserWithEmailAndPassword(email, pass); }
-        
         db.ref('users/' + phone).set({ phone, name, lastSeen: Date.now() });
     }
 
@@ -159,11 +177,29 @@
         }
     });
 
-    // --- Chat System (Text, Image, File) ---
+    // --- Chat Logic ---
+    function openChat(id, title) {
+        currentChatId = id;
+        document.getElementById('groupList').style.display = "none";
+        document.getElementById('chatRoom').style.display = "flex";
+        document.getElementById('backBtn').style.display = "block";
+        document.getElementById('headerTitle').innerText = title;
+        loadMessages(id);
+    }
+
+    function goBackToGroups() {
+        currentChatId = "";
+        document.getElementById('groupList').style.display = "block";
+        document.getElementById('chatRoom').style.display = "none";
+        document.getElementById('backBtn').style.display = "none";
+        document.getElementById('headerTitle').innerText = "Chats";
+        if(chatListener) db.ref('messages/' + currentChatId).off();
+    }
+
     function sendText() {
         const txt = document.getElementById('msgInput').value.trim();
-        if(!txt) return;
-        db.ref('messages').push({ sender: myName || myPhone, type: 'text', content: txt, time: getTime() });
+        if(!txt || !currentChatId) return;
+        db.ref('messages/' + currentChatId).push({ sender: myName || myPhone, type: 'text', content: txt, time: getTime() });
         document.getElementById('msgInput').value = "";
     }
 
@@ -172,36 +208,41 @@
         const reader = new FileReader(); reader.readAsDataURL(file);
         reader.onload = (e) => {
             const type = file.type.includes('image') ? 'image' : 'file';
-            db.ref('messages').push({ sender: myName || myPhone, type, content: e.target.result, fileName: file.name, time: getTime() });
+            db.ref('messages/' + currentChatId).push({ sender: myName || myPhone, type, content: e.target.result, fileName: file.name, time: getTime() });
         };
     }
 
-    db.ref('messages').limitToLast(30).on('child_added', snap => {
-        const m = snap.val(), isMe = (m.sender === myName || m.sender === myPhone);
+    function loadMessages(chatId) {
         const chatBox = document.getElementById('chatBox');
-        let content = m.type === 'text' ? m.content : 
-                     (m.type === 'image' ? `<img src="${m.content}" class="msg-img">` : 
-                     `<a href="${m.content}" download="${m.fileName}" style="color:var(--blue)"><i class="fas fa-file"></i> ${m.fileName}</a>`);
-        
-        chatBox.innerHTML += `<div class="bubble ${isMe?'sent':'received'}"><span class="sender-name">${isMe?'እኔ':m.sender}</span>${content}</div>`;
-        chatBox.scrollTop = chatBox.scrollHeight;
-        if(!isMe) playTone();
-    });
-
-    // --- Others ---
-    function loadContacts() {
-        db.ref('users').on('value', s => {
-            const list = document.getElementById('contactList'); list.innerHTML = "";
-            s.forEach(c => { const u = c.val(); list.innerHTML += `<div class="contact-item"><div class="user-img"></div><div><b>${u.name}</b><br><small>${u.phone}</small></div></div>`; });
+        chatBox.innerHTML = "";
+        if(chatListener) db.ref('messages/' + chatId).off();
+        chatListener = db.ref('messages/' + chatId).limitToLast(30).on('child_added', snap => {
+            const m = snap.val(), isMe = (m.sender === myName || m.sender === myPhone);
+            let content = m.type === 'text' ? m.content : (m.type === 'image' ? `<img src="${m.content}" style="width:100%; border-radius:10px;">` : `<a href="${m.content}" download>${m.fileName}</a>`);
+            chatBox.innerHTML += `<div class="bubble ${isMe?'sent':'received'}"><span class="sender-name">${isMe?'እኔ':m.sender}</span>${content}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
         });
     }
 
+    function loadContacts() {
+        db.ref('users').on('value', s => {
+            const list = document.getElementById('contactList'); list.innerHTML = "";
+            s.forEach(c => {
+                const u = c.val();
+                if(u.phone !== myPhone) {
+                    const chatId = [myPhone, u.phone].sort().join('_');
+                    list.innerHTML += `<div class="list-item" onclick="openChat('${chatId}', '${u.name}')"><div class="avatar">${u.name.charAt(0)}</div><div><b>${u.name}</b><br><small>${u.phone}</small></div></div>`;
+                }
+            });
+        });
+    }
+
+    // --- Story & Video ---
     async function postStory(input) {
         const file = input.files[0]; if(!file) return;
         const reader = new FileReader(); reader.readAsDataURL(file);
         reader.onload = (e) => db.ref('stories').push({ sender: myName || myPhone, img: e.target.result });
     }
-
     db.ref('stories').on('value', s => {
         const grid = document.getElementById('storyGrid'); grid.innerHTML = "";
         s.forEach(c => { const st = c.val(); grid.innerHTML += `<div class="story-card"><img src="${st.img}"><div style="position:absolute; bottom:10px; left:10px; color:white; font-size:12px;">${st.sender}</div></div>`; });
@@ -210,7 +251,6 @@
     function startLive() { document.getElementById('videoContainer').style.display = "block"; jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", { roomName: "Sayint_Link_Grand_Meeting", width: "100%", height: "100%", parentNode: document.getElementById('videoContainer'), configOverwrite: { disableDeepLinking: true } }); }
     function stopLive() { document.getElementById('videoContainer').style.display = "none"; if(jitsiApi) jitsiApi.dispose(); }
     function getTime() { return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
-    function playTone() { const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-20.mp3'); audio.play(); }
     function toggleTheme() { document.body.style.filter = document.body.style.filter === 'invert(1)' ? 'invert(0)' : 'invert(1)'; }
 </script>
 </body>
