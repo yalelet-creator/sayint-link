@@ -3,55 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ሳይንት ሊንክ | Sayint Link Pro</title>
+    <title>ሳይንት ሊንክ | Live & Chat</title>
     
     <!-- Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Jitsi Video Call Script -->
+    <script src='https://meet.jit.si/external_api.js'></script>
 
     <style>
         :root { --primary: #075e54; --accent: #25d366; --bg: #efe7dd; --white: #ffffff; --gray: #777; }
-        
-        /* ገጹ እንዳይወዛወዝ የሚከለክል */
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
-        
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; flex-direction: column; }
 
         /* Login Screen */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 3000; transition: 0.5s; }
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 4000; }
         .login-card { background: white; padding: 40px 30px; border-radius: 30px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
-        input[type="text"], input[type="password"] { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 15px; outline: none; box-sizing: border-box; font-size: 16px; }
+        input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 15px; outline: none; font-size: 16px; }
 
         /* Header */
-        header { background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; height: 60px; box-sizing: border-box; }
-        .live-link { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 12px; }
+        header { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box; }
+        .btn-live { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 13px; }
 
-        /* Chat Area (Scrollable) */
-        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); padding-bottom: 20px; }
-        
+        /* Live Video Container (Hidden by default) */
+        #videoContainer { display: none; position: fixed; top: 60px; left: 0; width: 100%; height: calc(100% - 130px); background: black; z-index: 2000; }
+
+        /* Chat Area */
+        #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
         .msg-wrap { display: flex; flex-direction: column; max-width: 85%; }
         .sent { align-self: flex-end; align-items: flex-end; }
         .received { align-self: flex-start; align-items: flex-start; }
-        
-        .bubble { padding: 10px 14px; border-radius: 15px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; word-wrap: break-word; }
+        .bubble { padding: 10px 14px; border-radius: 15px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
         .sent .bubble { background: #dcf8c6; border-top-right-radius: 0; }
         .received .bubble { background: var(--white); border-top-left-radius: 0; }
-        
-        .sender-tag { font-size: 10px; font-weight: bold; margin-bottom: 2px; color: var(--primary); opacity: 0.8; }
-        .time-tag { font-size: 9px; color: var(--gray); margin-top: 3px; }
+        .sender-tag { font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 2px; }
 
-        /* Input Bar (Fixed at Bottom) */
-        .footer-input { background: #f0f0f0; padding: 10px 15px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; height: 70px; box-sizing: border-box; }
+        /* Footer Input */
+        .footer-input { background: #f0f0f0; padding: 10px 15px; display: flex; align-items: center; gap: 10px; height: 70px; box-sizing: border-box; }
         .msg-input { flex: 1; background: white; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; font-size: 16px; outline: none; }
-        
         .circle-btn { background: var(--primary); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
         .btn-mic { background: #555; }
         .recording { background: #e74c3c !important; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        audio { height: 35px; width: 180px; margin-top: 5px; }
+        audio { height: 35px; width: 180px; }
     </style>
 </head>
 <body>
@@ -59,8 +55,7 @@
 <!-- Login -->
 <div id="loginScreen">
     <div class="login-card">
-        <h1 style="color:var(--primary); margin:0;">ሳይንት ሊንክ</h1>
-        <p style="color:var(--gray); margin-bottom:20px;">በስልክ ቁጥርዎ ይግቡ</p>
+        <h2 style="color:var(--primary)">ሳይንት ሊንክ</h2>
         <input type="text" id="phoneInput" placeholder="ስልክ ቁጥር (09...)">
         <input type="password" id="passInput" placeholder="ፓስወርድ">
         <button class="circle-btn" style="width:100%; border-radius:15px;" onclick="handleLogin()">መልክተኛውን ክፈት</button>
@@ -70,28 +65,32 @@
 <header>
     <div>
         <h3 id="myTitle" style="margin:0; font-size:16px;">Sayint Link</h3>
-        <small id="status">ግንኙነት ተፈጥሯል ✅</small>
+        <small>ግንኙነት ተፈጥሯል ✅</small>
     </div>
-    <a href="https://meet.jit.si/SayintLiveRoom" target="_blank" class="live-link">
+    <button class="btn-live" id="liveToggleBtn" onclick="toggleLive()">
         <i class="fas fa-video"></i> Live
-    </a>
+    </button>
 </header>
 
-<!-- መልዕክቶች የሚወጡበት ቦታ -->
+<!-- የቀጥታ ቪዲዮ ቦታ -->
+<div id="videoContainer"></div>
+
+<!-- ቻትቦክስ -->
 <div id="chatBox"></div>
 
-<!-- መጻፊያው (ሁልጊዜም ከታች) -->
+<!-- መጻፊያ -->
 <div class="footer-input">
     <button id="micBtn" class="circle-btn btn-mic" onclick="startVoice()">
         <i id="micIcon" class="fas fa-microphone"></i>
     </button>
-    <input type="text" id="msgInput" class="msg-input" placeholder="መልዕክት ይጻፉ..." onkeypress="if(event.key==='Enter') sendText()">
+    <input type="text" id="msgInput" class="msg-input" placeholder="መልዕክት..." onkeypress="if(event.key==='Enter') sendText()">
     <button class="circle-btn" onclick="sendText()">
         <i class="fas fa-paper-plane"></i>
     </button>
 </div>
 
 <script>
+    // 1. Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAVn2jp_TR6Wjq1i_i5Xmk1Q6ea96KHMIQ",
         authDomain: "sayint-gebaye.firebaseapp.com",
@@ -103,15 +102,14 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
-    let myPhone = "";
-    let mediaRecorder, chunks = [];
+    const db = firebase.database(), auth = firebase.auth();
+    let myPhone = "", mediaRecorder, chunks = [], jitsiApi = null;
 
+    // --- Login ---
     async function handleLogin() {
         const phone = document.getElementById('phoneInput').value;
         const pass = document.getElementById('passInput').value;
-        if(phone.length < 10) { alert("ትክክለኛ ስልክ ያስገቡ!"); return; }
+        if(phone.length < 10) return alert("ስልክ ያስገቡ!");
         const fakeEmail = phone + "@sayint.com";
         try { await auth.signInWithEmailAndPassword(fakeEmail, pass); } 
         catch(e) { await auth.createUserWithEmailAndPassword(fakeEmail, pass); }
@@ -125,16 +123,43 @@
         }
     });
 
+    // --- Live Video Call (Jitsi) ---
+    function toggleLive() {
+        const container = document.getElementById('videoContainer');
+        const btn = document.getElementById('liveToggleBtn');
+        
+        if (container.style.display === "none" || container.style.display === "") {
+            container.style.display = "block";
+            btn.innerHTML = '<i class="fas fa-times"></i> ዝጋ';
+            btn.style.background = "#555";
+            
+            // Start Jitsi
+            const domain = "meet.jit.si";
+            const options = {
+                roomName: "SayintLiveRoom_Yalelet",
+                width: "100%",
+                height: "100%",
+                parentNode: container,
+                userInfo: { displayName: myPhone }
+            };
+            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+        } else {
+            container.style.display = "none";
+            btn.innerHTML = '<i class="fas fa-video"></i> Live';
+            btn.style.background = "#e74c3c";
+            if (jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+        }
+    }
+
+    // --- Text Messages ---
     function sendText() {
         const txt = document.getElementById('msgInput').value.trim();
         if(!txt) return;
-        db.ref('messages').push({
-            sender: myPhone, type: 'text', content: txt,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
+        db.ref('messages').push({ sender: myPhone, type: 'text', content: txt, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
         document.getElementById('msgInput').value = "";
     }
 
+    // --- Voice Messages ---
     async function startVoice() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -144,7 +169,7 @@
                 const reader = new FileReader();
                 reader.readAsDataURL(new Blob(chunks));
                 reader.onloadend = () => {
-                    db.ref('messages').push({ sender: myPhone, type: 'voice', content: reader.result, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                    db.ref('messages').push({ sender: myPhone, type: 'voice', content: reader.result, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
                 };
                 chunks = [];
             };
@@ -152,7 +177,7 @@
             document.getElementById('micBtn').classList.add('recording');
             document.getElementById('micIcon').className = "fas fa-stop";
             document.getElementById('micBtn').onclick = stopVoice;
-        } catch(err) { alert("ማይክሮፎን አልሰራም!"); }
+        } catch(err) { alert("ማይክሮፎን ፍቃድ ይፈልጋል!"); }
     }
 
     function stopVoice() {
@@ -162,22 +187,14 @@
         document.getElementById('micBtn').onclick = startVoice;
     }
 
+    // --- Real-time Sync ---
     db.ref('messages').limitToLast(30).on('child_added', snap => {
-        const m = snap.val();
-        const isMe = m.sender === myPhone;
-        const chatBox = document.getElementById('chatBox');
+        const m = snap.val(), isMe = m.sender === myPhone, chatBox = document.getElementById('chatBox');
         let content = m.type === 'text' ? m.content : `<audio controls src="${m.content}"></audio>`;
-        
-        const html = `
-            <div class="msg-wrap ${isMe ? 'sent' : 'received'}">
-                <span class="sender-tag">${isMe ? 'እኔ' : m.sender}</span>
-                <div class="bubble">${content}</div>
-                <span class="time-tag">${m.time}</span>
-            </div>`;
+        const html = `<div class="msg-wrap ${isMe?'sent':'received'}"><span class="sender-tag">${isMe?'እኔ':m.sender}</span><div class="bubble">${content}</div><span class="time-tag">${m.time}</span></div>`;
         chatBox.insertAdjacentHTML('beforeend', html);
         chatBox.scrollTop = chatBox.scrollHeight;
     });
 </script>
-
 </body>
 </html>
