@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ሳይንት ሊንክ ፕሮ | Sayint Link Absolute Master</title>
+    <title>ሳይንት ሊንክ ፕሮ | Sayint Link Absolute Edition</title>
     
     <!-- PWA & Libraries -->
     <link rel="manifest" href="manifest.json">
@@ -15,37 +15,34 @@
     <script src='https://meet.jit.si/external_api.js'></script>
 
     <style>
-        :root { --primary: #075e54; --accent: #25d366; --bg: #efe7dd; --white: #ffffff; --gray: #777; --danger: #e74c3c; }
+        :root { --primary: #075e54; --accent: #25d366; --bg: #efe7dd; --white: #ffffff; --text: #2c3e50; --gray: #777; --danger: #e74c3c; }
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); display: flex; flex-direction: column; transition: 0.3s; }
-        
-        .dark-mode { --bg: #121212; --white: #1e1e1e; --gray: #bdc3c7; --primary: #1f2c33; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; flex-direction: column; transition: 0.3s; }
+        .dark-mode { --bg: #121212; --white: #1e1e1e; --text: #ecf0f1; --primary: #1f2c33; }
 
         /* Login Screen */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 5000; transition: 0.5s; }
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; align-items: center; justify-content: center; z-index: 5000; }
         .login-card { background: white; padding: 40px 30px; border-radius: 30px; width: 85%; max-width: 360px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
         input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 15px; outline: none; font-size: 16px; box-sizing: border-box; }
 
         /* Header */
         header { background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; height: 65px; box-sizing: border-box; z-index: 1000; }
-        .btn-live { background: var(--danger); color: white; border: none; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .btn-live { background: var(--danger); color: white; border: none; padding: 10px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; }
 
-        /* Live Video Fixed Container */
+        /* Live Video Area */
         #videoContainer { display: none; position: fixed; top: 65px; left: 0; width: 100%; height: calc(100% - 135px); background: black; z-index: 2000; }
 
         /* Chat Area */
         #chatBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); padding-bottom: 40px; }
-        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-wrap { display: flex; flex-direction: column; max-width: 85%; }
         .sent { align-self: flex-end; align-items: flex-end; }
         .received { align-self: flex-start; align-items: flex-start; }
         .bubble { padding: 10px 14px; border-radius: 15px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
         .sent .bubble { background: #dcf8c6; border-top-right-radius: 0; }
-        .received .bubble { background: var(--white); border-top-left-radius: 0; }
+        .received .bubble { background: var(--white); border-top-left-radius: 0; color: var(--text); }
         .sender-tag { font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 2px; }
-        .time-tag { font-size: 9px; color: var(--gray); margin-top: 4px; }
 
-        /* Footer Input (Sticky) */
+        /* Footer Input */
         .footer-input { background: #f0f0f0; padding: 10px 15px; display: flex; align-items: center; gap: 10px; height: 70px; box-sizing: border-box; border-top: 1px solid #ddd; z-index: 1000; }
         .msg-input { flex: 1; background: white; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; font-size: 16px; outline: none; }
         .circle-btn { background: var(--primary); color: white; border: none; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
@@ -59,7 +56,7 @@
 </head>
 <body id="body">
 
-<!-- Login View -->
+<!-- Login -->
 <div id="loginScreen">
     <div class="login-card">
         <h1 style="color:var(--primary); margin:0;">ሳይንት ሊንክ</h1>
@@ -74,7 +71,7 @@
 <header>
     <div>
         <h3 id="myTitle" style="margin:0; font-size:17px;">Sayint Link</h3>
-        <small>በቀጥታ ግንኙነት ላይ ✅</small>
+        <small>ግንኙነት ተፈጥሯል ✅</small>
     </div>
     <div style="display: flex; align-items: center;">
         <button class="theme-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
@@ -98,7 +95,7 @@
 </div>
 
 <script>
-    // 1. Firebase Configuration
+    // 1. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAVn2jp_TR6Wjq1i_i5Xmk1Q6ea96KHMIQ",
         authDomain: "sayint-gebaye.firebaseapp.com",
@@ -131,7 +128,7 @@
         }
     });
 
-    // --- Live Video Call (Jitsi Meet Multi-User) ---
+    // --- Live Video (Jitsi Meet Multi-User) ---
     function toggleLive() {
         const container = document.getElementById('videoContainer');
         const btn = document.getElementById('liveToggleBtn');
@@ -142,16 +139,10 @@
             
             const domain = "meet.jit.si";
             const options = {
-                roomName: "Sayint_Link_Grand_Meeting_Room", // ሁሉም ሰው ወደ አንድ ክፍል እንዲገባ ይህ ስም አንድ መሆን አለበት!
+                roomName: "Sayint_Link_Grand_Meeting_Room_Yalelet", // ይህ ስም ለሁሉም ተጠቃሚ አንድ አይነት መሆን አለበት!
                 width: "100%", height: "100%", parentNode: container,
-                configOverwrite: {
-                    disableDeepLinking: true,
-                    startWithAudioMuted: false,
-                    startWithVideoMuted: false
-                },
-                interfaceConfigOverwrite: {
-                    MOBILE_APP_PROMO: false
-                },
+                configOverwrite: { disableDeepLinking: true },
+                interfaceConfigOverwrite: { MOBILE_APP_PROMO: false },
                 userInfo: { displayName: myPhone }
             };
             jitsiApi = new JitsiMeetExternalAPI(domain, options);
@@ -163,7 +154,7 @@
         }
     }
 
-    // --- Text Messaging ---
+    // --- Messaging ---
     function sendText() {
         const txt = document.getElementById('msgInput').value.trim();
         if(!txt) return;
@@ -171,7 +162,6 @@
         document.getElementById('msgInput').value = "";
     }
 
-    // --- Voice Messages Fixed ---
     async function startVoice() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -200,11 +190,10 @@
         document.getElementById('micBtn').onclick = startVoice;
     }
 
-    // --- Real-time Listening ---
     db.ref('messages').limitToLast(30).on('child_added', snap => {
         const m = snap.val(), isMe = m.sender === myPhone, chatBox = document.getElementById('chatBox');
         let content = m.type === 'text' ? m.content : `<audio controls src="${m.content}"></audio>`;
-        const html = `<div class="msg-wrap ${isMe?'sent':'received'}"><span class="sender-tag">${isMe?'እኔ':m.sender}</span><div class="bubble">${content}</div><span class="time-tag">${m.time}</span></div>`;
+        const html = `<div class="msg-wrap ${isMe?'sent':'received'}"><span class="sender-tag">${isMe?'እኔ':m.sender}</span><div class="bubble">${content}</div><span style="font-size:9px; color:gray; margin-top:3px;">${m.time}</span></div>`;
         chatBox.insertAdjacentHTML('beforeend', html);
         chatBox.scrollTop = chatBox.scrollHeight;
     });
