@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ሳይንት ሊንክ ፕሮ | Sayint Link Absolute</title>
+    <title>ሳይንት ሊንክ ፕሮ | Sayint Link Absolute Master</title>
     
-    <!-- PWA Settings -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00b0ff">
-    
-    <!-- Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -17,97 +13,105 @@
     <script src='https://meet.jit.si/external_api.js'></script>
 
     <style>
-        :root { --imo-blue: #00b0ff; --imo-bg: #f4f4f4; --sent: #e1f5fe; --received: #ffffff; --dark: #2c3e50; }
+        :root { --imo-blue: #00b0ff; --imo-bg: #f4f4f4; --sent: #e1f5fe; --received: #ffffff; --dark: #1f2c33; --danger: #e74c3c; }
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--imo-bg); font-family: 'Segoe UI', Arial, sans-serif; }
+        
+        body.dark-mode { --imo-bg: #121212; --white: #1e1e1e; --text: #ecf0f1; --imo-blue: #1f2c33; }
 
         /* Login Screen */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--imo-blue); display: flex; align-items: center; justify-content: center; z-index: 6000; }
-        .login-card { background: white; padding: 35px; border-radius: 25px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .login-card { background: white; padding: 35px; border-radius: 25px; width: 85%; max-width: 350px; text-align: center; }
         input { width: 100%; padding: 14px; margin-bottom: 12px; border: 2px solid #eee; border-radius: 12px; outline: none; font-size: 16px; box-sizing: border-box; }
 
         /* Header */
-        header { background: var(--imo-blue); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; height: 60px; box-sizing: border-box; position: relative; }
-        .menu-dropdown { display: none; position: absolute; top: 55px; right: 10px; background: white; color: #333; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 10px; width: 150px; z-index: 5000; }
-        .menu-item { padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
-
-        /* Content Area */
-        .content-body { flex: 1; height: calc(100% - 125px); overflow-y: auto; display: none; }
+        header { background: var(--imo-blue); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; height: 60px; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Main Navigation Layout */
+        #mainContainer { display: flex; flex-direction: column; height: 100%; }
+        .content-body { flex: 1; overflow-y: auto; display: none; }
         .active-tab { display: block; }
         .item-row { background: white; padding: 12px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; cursor: pointer; }
-        .avatar { width: 50px; height: 50px; border-radius: 50%; background: #00b0ff; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: #00b0ff; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
 
-        /* Chat Room Overlay */
+        /* Chat Room Overlay (IMO Style) */
         #chatRoom { position: fixed; top: 0; left: 100%; width: 100%; height: 100%; background: #e5ddd5; z-index: 4000; display: flex; flex-direction: column; transition: 0.3s; }
         .room-header { background: var(--imo-blue); color: white; padding: 12px 15px; display: flex; align-items: center; gap: 15px; height: 60px; }
-        #messageBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
+        #messageBox { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
         .bubble { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-wrap: break-word; }
         .sent { align-self: flex-end; background: var(--sent); border-top-right-radius: 0; }
         .received { align-self: flex-start; background: var(--received); border-top-left-radius: 0; }
 
-        /* Input Bar */
-        .input-bar { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; position: absolute; bottom: 0; width: 100%; box-sizing: border-box; }
-        .msg-in { flex: 1; background: white; padding: 10px 15px; border-radius: 20px; border: 1px solid #ddd; outline: none; font-size: 16px; }
+        /* Input Bar (Fixed at bottom of Chat Room) */
+        .input-bar { background: #f0f0f0; padding: 10px 15px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; width: 100%; box-sizing: border-box; }
+        .msg-in { flex: 1; background: white; padding: 12px 15px; border-radius: 20px; border: 1px solid #ddd; outline: none; font-size: 16px; }
+        .icon-btn { color: var(--imo-blue); font-size: 22px; cursor: pointer; }
 
         /* Bottom Nav */
-        .bottom-nav { background: white; height: 65px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; position: fixed; bottom: 0; width: 100%; }
+        .bottom-nav { background: white; height: 65px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; }
         .nav-btn { color: #888; text-align: center; font-size: 11px; cursor: pointer; }
         .nav-btn.active { color: var(--imo-blue); }
 
-        /* Overlays */
+        /* Full Screen Overlays */
         #videoOverlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 5000; }
-        .close-call { position: absolute; top: 30px; right: 20px; background: red; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; z-index: 5001; }
         #fullScreenOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 6000; justify-content: center; align-items: center; }
         #fullImg { max-width: 95%; max-height: 95%; border-radius: 10px; }
-        
-        .recording-btn { color: red !important; animation: pulse 1s infinite; }
+        .recording-active { color: red !important; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
-<body id="body">
+<body>
 
+<!-- Login -->
 <div id="loginScreen">
     <div class="login-card">
         <h1 style="color:var(--imo-blue); margin:0 0 10px 0;">ሳይንት ሊንክ</h1>
         <input type="text" id="phoneIn" placeholder="ስልክ ቁጥር (09...)">
         <input type="text" id="nameIn" placeholder="ሙሉ ስምዎ">
         <input type="password" id="passIn" placeholder="ፓስወርድ">
-        <button class="btn" style="background:var(--imo-blue); color:white; width:100%; border-radius:15px;" onclick="handleLogin()">ግባ</button>
+        <button class="btn" style="background:var(--imo-blue); color:white;" onclick="handleLogin()">መተግበሪያውን ክፈት</button>
     </div>
 </div>
 
-<div id="videoOverlay"><button class="close-call" onclick="stopCall()"><i class="fas fa-times"></i></button></div>
+<div id="videoOverlay"><button style="position:absolute; top:30px; right:20px; z-index:5001; background:red; border:none; color:white; padding:10px; border-radius:50%;" onclick="stopCall()"><i class="fas fa-times"></i></button></div>
 <div id="fullScreenOverlay" onclick="this.style.display='none'"><img id="fullImg" src=""></div>
+
+<!-- Chat Room View -->
+<div id="chatRoom">
+    <div class="room-header">
+        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
+        <div class="avatar" id="roomAvatar" style="width:35px; height:35px; font-size:14px;"></div>
+        <b id="roomTitle">ስማቸው</b>
+        <i class="fas fa-video" style="margin-left:auto; font-size:20px;" onclick="startCall()"></i>
+    </div>
+    <div id="messageBox"></div>
+    <div class="input-bar">
+        <i class="fas fa-microphone icon-btn" id="micBtn" onclick="startVoice()"></i>
+        <i class="fas fa-camera icon-btn" onclick="document.getElementById('imgIn').click()"></i>
+        <input type="file" id="imgIn" hidden accept="image/*" onchange="sendImg(this)">
+        <input type="text" id="msgInputIn" class="msg-in" placeholder="መልዕክት...">
+        <i class="fas fa-paper-plane icon-btn" onclick="sendTxt()"></i>
+    </div>
+</div>
 
 <div id="mainContainer">
     <header>
         <h3>Sayint Link</h3>
-        <div style="display:flex; gap:20px; align-items:center;">
-            <i class="fas fa-search" onclick="toggleSearch()"></i>
-            <i class="fas fa-ellipsis-v" onclick="toggleMenu()"></i>
-        </div>
-        <div id="menuDropdown" class="menu-dropdown">
-            <div class="menu-item" onclick="toggleTheme()">Dark/Light Mode</div>
-            <div class="menu-item" onclick="logout()">Logout</div>
-        </div>
+        <div style="display:flex; gap:18px;"><i class="fas fa-moon" onclick="toggleTheme()"></i><i class="fas fa-search"></i></div>
     </header>
 
-    <div id="searchArea" style="display:none; padding:10px; background:white;">
-        <input type="text" id="searchInput" onkeyup="filterItems()" placeholder="ጓደኛ ይፈልጉ..." style="margin-bottom:0;">
-    </div>
-
-    <!-- 1. CHATS TAB (History) -->
+    <!-- 1. CHATS TAB -->
     <div id="chatsTab" class="content-body active-tab">
-        <div id="chatHistory"></div>
+        <div id="chatHistoryList"></div>
     </div>
 
-    <!-- 2. EXPLORE TAB (Stories) -->
+    <!-- 2. EXPLORE/STORIES TAB -->
     <div id="exploreTab" class="content-body">
-        <div style="padding:15px;"><button class="btn" style="background:var(--imo-blue); color:white; width:100%; border-radius:10px; padding:10px;" onclick="document.getElementById('stIn').click()">+ አዲስ ታሪክ (Story) ልጠፍ</button></div>
+        <div style="padding:15px;"><button class="btn" onclick="document.getElementById('stIn').click()">+ አዲስ ታሪክ (Story) ልጠፍ</button></div>
         <input type="file" id="stIn" hidden accept="image/*" onchange="postStory(this)">
         <div id="storyList" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:15px;"></div>
     </div>
 
-    <!-- 3. CONTACTS TAB (User List) -->
+    <!-- 3. CONTACTS TAB -->
     <div id="contactsTab" class="content-body">
         <div id="contactList"></div>
     </div>
@@ -119,24 +123,8 @@
     </div>
 </div>
 
-<div id="chatRoom">
-    <div class="room-header">
-        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
-        <div class="avatar" id="roomAvatar" style="width:35px; height:35px; font-size:14px;"></div>
-        <b id="roomTitle">ስማቸው</b>
-        <i class="fas fa-video" style="margin-left:auto; font-size:20px;" onclick="startCall()"></i>
-    </div>
-    <div id="messageBox"></div>
-    <div class="input-bar">
-        <i class="fas fa-microphone icon-btn" id="micBtn" style="color:var(--imo-blue); cursor:pointer;" onclick="startVoice()"></i>
-        <i class="fas fa-camera icon-btn" style="color:var(--imo-blue); cursor:pointer;" onclick="document.getElementById('imgIn').click()"></i>
-        <input type="file" id="imgIn" hidden accept="image/*" onchange="sendImg(this)">
-        <input type="text" id="msgIn" class="msg-in" placeholder="መልዕክት...">
-        <i class="fas fa-paper-plane icon-btn" style="color:var(--imo-blue); cursor:pointer;" onclick="sendTxt()"></i>
-    </div>
-</div>
-
 <script>
+    // 1. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAVn2jp_TR6Wjq1i_i5Xmk1Q6ea96KHMIQ", authDomain: "sayint-gebaye.firebaseapp.com",
         projectId: "sayint-gebaye", storageBucket: "sayint-gebaye.firebasestorage.app",
@@ -147,6 +135,7 @@
     const db = firebase.database(), auth = firebase.auth();
     let myPhone = "", myName = "", currentChatId = "", chatRef = null, jitsiApi = null, mediaRec, chunks = [];
 
+    // --- Authentication ---
     async function handleLogin() {
         const p = document.getElementById('phoneIn').value, n = document.getElementById('nameIn').value, pw = document.getElementById('passIn').value;
         if(p.length < 10 || !n) return alert("መረጃ ያሟሉ!");
@@ -159,8 +148,7 @@
         if(user) { myPhone = user.email.split('@')[0]; document.getElementById('loginScreen').style.display = "none"; loadApp(); }
     });
 
-    function logout() { auth.signOut(); location.reload(); }
-
+    // --- Tab Switcher ---
     function switchTab(tab) {
         document.querySelectorAll('.content-body').forEach(b => b.classList.remove('active-tab'));
         document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
@@ -168,10 +156,7 @@
         document.getElementById('btn-' + tab).classList.add('active');
     }
 
-    function toggleMenu() { const m = document.getElementById('menuDropdown'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
-    function toggleSearch() { const s = document.getElementById('searchArea'); s.style.display = s.style.display === 'block' ? 'none' : 'block'; }
-    function toggleTheme() { document.body.classList.toggle('dark-mode'); toggleMenu(); }
-
+    // --- Chat Room Logic (Fixed Texting) ---
     function openChat(id, title) {
         currentChatId = id; document.getElementById('chatRoom').style.left = "0";
         document.getElementById('roomTitle').innerText = title;
@@ -181,7 +166,11 @@
         chatRef = db.ref('messages/' + id);
         chatRef.limitToLast(40).on('child_added', s => {
             const m = s.val(), isMe = m.senderPhone === myPhone;
-            let content = m.type === 'text' ? m.content : (m.type === 'image' ? `<img src="${m.content}" class="msg-img" onclick="openFS(this.src)">` : `<audio controls src="${m.content}"></audio>`);
+            let content = "";
+            if(m.type === 'text') content = m.content;
+            else if(m.type === 'image') content = `<img src="${m.content}" style="width:100%; border-radius:10px;" onclick="openFS(this.src)">`;
+            else if(m.type === 'voice') content = `<audio controls src="${m.content}"></audio>`;
+            
             box.innerHTML += `<div class="msg-wrap ${isMe?'sent':'received'}"><div class="bubble">${content}</div></div>`;
             box.scrollTop = box.scrollHeight;
         });
@@ -190,9 +179,9 @@
     function closeChat() { document.getElementById('chatRoom').style.left = "100%"; }
 
     function sendTxt() {
-        const val = document.getElementById('msgIn').value; if(!val) return;
+        const val = document.getElementById('msgInputIn').value; if(!val) return;
         db.ref('messages/' + currentChatId).push({ senderPhone: myPhone, type: 'text', content: val });
-        document.getElementById('msgIn').value = "";
+        document.getElementById('msgInputIn').value = "";
     }
 
     async function sendImg(input) {
@@ -210,10 +199,11 @@
             r.onloadend = () => db.ref('messages/' + currentChatId).push({ senderPhone: myPhone, type: 'voice', content: r.result });
         };
         mediaRec.start();
-        document.getElementById('micBtn').classList.add('recording-btn');
-        document.getElementById('micBtn').onclick = () => { mediaRec.stop(); document.getElementById('micBtn').classList.remove('recording-btn'); document.getElementById('micBtn').onclick = startVoice; };
+        document.getElementById('micBtn').classList.add('recording-active');
+        document.getElementById('micBtn').onclick = () => { mediaRec.stop(); document.getElementById('micBtn').classList.remove('recording-active'); document.getElementById('micBtn').onclick = startVoice; };
     }
 
+    // --- Data Load ---
     function loadApp() {
         db.ref('users').on('value', s => {
             const list = document.getElementById('contactList'); list.innerHTML = "";
@@ -225,7 +215,7 @@
         });
         db.ref('stories').on('value', s => {
             const list = document.getElementById('storyList'); list.innerHTML = "";
-            s.forEach(c => { const st = c.val(); list.innerHTML += `<div style="background:white; border-radius:10px; overflow:hidden;"><img src="${st.img}" style="width:100%; height:150px; object-fit:cover;"><p style="font-size:10px; padding:5px;">${st.sender}</p></div>`; });
+            s.forEach(c => { const st = c.val(); list.innerHTML += `<div style="background:white; border-radius:10px; overflow:hidden; height:180px;"><img src="${st.img}" style="width:100%; height:100%; object-fit:cover;"></div>`; });
         });
     }
 
@@ -235,29 +225,10 @@
         reader.onload = (e) => db.ref('stories').push({ sender: myPhone, img: e.target.result });
     }
 
-    function startCall() {
-        document.getElementById('videoOverlay').style.display = "block";
-        jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", { 
-            roomName: "Sayint_Call_" + currentChatId, width: "100%", height: "100%", parentNode: document.getElementById('videoOverlay'),
-            configOverwrite: { disableDeepLinking: true }, interfaceConfigOverwrite: { MOBILE_APP_PROMO: false }
-        });
-    }
+    function startCall() { document.getElementById('videoOverlay').style.display = "block"; jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", { roomName: "Sayint_Call_" + currentChatId, width: "100%", height: "100%", parentNode: document.getElementById('videoOverlay'), configOverwrite: { disableDeepLinking: true } }); }
     function stopCall() { document.getElementById('videoOverlay').style.display = "none"; if(jitsiApi) jitsiApi.dispose(); }
     function openFS(s) { document.getElementById('fullImg').src = s; document.getElementById('fullScreenOverlay').style.display = "flex"; }
-    function filterItems() {
-        const t = document.getElementById('searchInput').value.toLowerCase();
-        document.querySelectorAll('.item-row').forEach(row => { row.style.display = row.innerText.toLowerCase().includes(t) ? "flex" : "none"; });
-    }
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
 </script>
-
-<!-- Service Worker for App Install -->
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js');
-  });
-}
-</script>
-
 </body>
 </html>
