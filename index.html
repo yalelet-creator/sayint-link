@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ሳይንት ሊንክ | Sayint Link Messenger</title>
+    
+    <!-- Firebase & FontAwesome -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { --primary: #2ecc71; --chat-bg: #e5ddd5; --my-msg: #dcf8c6; --user-msg: #ffffff; --dark: #075e54; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--chat-bg); display: flex; flex-direction: column; height: 100vh; }
+        
+        header { background: var(--dark); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Chat Area */
+        #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; position: relative; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .sent { align-self: flex-end; background: var(--my-msg); border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: var(--user-msg); border-bottom-left-radius: 2px; }
+        .sender-name { font-size: 10px; font-weight: bold; color: var(--dark); margin-bottom: 3px; display: block; }
+        .time { font-size: 9px; color: #999; display: block; text-align: right; margin-top: 5px; }
+
+        /* Input Area */
+        .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #ddd; }
+        input { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; font-size: 16px; }
+        .icon-btn { background: none; border: none; color: var(--dark); font-size: 20px; cursor: pointer; }
+        
+        /* Live & Audio UI */
+        .live-btn { background: #e74c3c; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 12px; }
+        #recStatus { font-size: 12px; color: #e74c3c; display: none; }
+        audio { height: 35px; width: 200px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h2 style="margin:0; font-size: 18px;">ሳይንት ሊንክ (Sayint Link)</h2>
+        <span id="userDisp" style="font-size: 10px; opacity: 0.8;"></span>
+    </div>
+    <a href="https://meet.jit.si/SayintLiveRoom" target="_blank" class="live-btn"><i class="fas fa-video"></i> ቀጥታ (Live)</a>
+</header>
+
+<!-- Chat Messages -->
+<div id="chatBox"></div>
+
+<!-- Input Bar -->
+<div class="input-area">
+    <button class="icon-btn" onclick="startVoice()"><i id="micIcon" class="fas fa-microphone"></i></button>
+    <span id="recStatus">🔴...</span>
+    <input type="text" id="msgInput" placeholder="መልዕክት ይጻፉ...">
+    <button class="icon-btn" onclick="sendText()"><i class="fas fa-paper-plane"></i></button>
+</div>
+
+<script>
+    // 1. Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyAVn2jp_TR6Wjq1i_i5Xmk1Q6ea96KHMIQ",
+        authDomain: "sayint-gebaye.firebaseapp.com",
+        projectId: "sayint-gebaye",
+        storageBucket: "sayint-gebaye.firebasestorage.app",
+        messagingSenderId: "239223565179",
+        appId: "1:239223565179:web:e4a4c57367fb3354846bde",
+        databaseURL: "https://sayint-gebaye-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    let myName = "ያለለት (Uni)"; // ይህንን በምዝገባ ወቅት መቀየር ይቻላል
+    let mediaRecorder, chunks = [];
+
+    // 2. Authentication (Login check)
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            let email = prompt("እባክዎ ኢሜይልዎን ያስገቡ (ለምሳሌ yalelet@mail.com)፦");
+            let pass = prompt("ፓስወርድ ያስገቡ፦");
+            auth.signInWithEmailAndPassword(email, pass).catch(() => auth.createUserWithEmailAndPassword(email, pass));
+        } else {
+            myName = user.email.split('@')[0];
+            document.getElementById('userDisp').innerText = user.email;
+        }
+    });
+
+    // 3. Send Text Message
+    function sendText() {
+        const text = document.getElementById('msgInput').value;
+        if (!text) return;
+        db.ref('messages').push({
+            sender: myName,
+            type: 'text',
+            content: text,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        document.getElementById('msgInput').value = "";
+    }
+
+    // 4. Voice Recording
+    async function startVoice() {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.onstop = () => {
+            const reader = new FileReader();
+            reader.readAsDataURL(new Blob(chunks));
+            reader.onloadend = () => {
+                db.ref('messages').push({
+                    sender: myName,
+                    type: 'voice',
+                    content: reader.result,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                });
+                chunks = [];
+            };
+        };
+        mediaRecorder.start();
+        document.getElementById('micIcon').className = "fas fa-stop";
+        document.getElementById('recStatus').style.display = "inline";
+        document.querySelector('.icon-btn').onclick = stopVoice;
+    }
+
+    function stopVoice() {
+        mediaRecorder.stop();
+        document.getElementById('micIcon').className = "fas fa-microphone";
+        document.getElementById('recStatus').style.display = "none";
+        document.querySelector('.icon-btn').onclick = startVoice;
+    }
+
+    // 5. Load Messages Real-time
+    db.ref('messages').limitToLast(20).on('child_added', snap => {
+        const m = snap.val();
+        const chatBox = document.getElementById('chatBox');
+        const isMe = m.sender === myName;
+        
+        let content = m.type === 'text' ? m.content : `<audio controls src="${m.content}"></audio>`;
+        
+        chatBox.innerHTML += `
+            <div class="msg ${isMe ? 'sent' : 'received'}">
+                <span class="sender-name">${m.sender}</span>
+                ${content}
+                <span class="time">${m.time}</span>
+            </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+</script>
+
+</body>
+</html>
